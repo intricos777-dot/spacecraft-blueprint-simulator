@@ -1,0 +1,42 @@
+{
+  "best_design": {
+    "name": "gen14-8455",
+    "mass_kg": 1779374.7886572462,
+    "length_m": 59.929524266518605,
+    "max_diameter_m": 8.010369514062948,
+    "propulsion": "fusion_ramjet",
+    "isp_s": 6590.637632187021,
+    "thrust_n": 718166141.7416718,
+    "atmo_capable": true,
+    "max_speed_m_s": 149896229.0,
+    "crew": 7,
+    "cargo_kg": 623916.7041705865,
+    "structure_material": "titanium_al6vn",
+    "thermal_material": "transpiration",
+    "shield_material": "mag",
+    "armor_material": "al2o3_dep",
+    "habitat_volume_m3": 1057.0702652116063,
+    "power_output_mw": 992.0319771115364,
+    "radiation_shielding_kg": 0.0,
+    "score": 68.333638981978,
+    "generation": 14,
+    "parent": "gen13-4203",
+    "max_speed_c": 0.5
+  },
+  "physics": {
+    "delta_v_m_s": 39609.89406935706,
+    "thrust_to_weight": 41.1563467693288,
+    "mass_fraction": 0.4581965322605203,
+    "payload_fraction": 0.3511102372322816,
+    "ballistic_coefficient": 117693.15257439917,
+    "peak_heating_w_m2": 7.097220751723203e+17,
+    "structure_mass_kg": 339314.72673211317,
+    "propellant_mass_kg": 815303.3577545465,
+    "power_mw": 992.0319771115364,
+    "shield_mass_kg": 71174.99154628985,
+    "armor_mass_kg": 61076.65081178037
+  },
+  "run_directory": "sim-runs/20260807-040821",
+  "timestamp": "2026-08-07T04:08:21.598211",
+  "note": "Blend of theoretical drive scaling + realistic structural/thermal/propellant budgets."
+}
