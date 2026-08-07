@@ -353,9 +353,13 @@ def run_dual_simulation(runs: int = 10, population: int = 40, output: str = "blu
     runs_dir = Path("sim-runs") / datetime.now().strftime("%Y%m%d-%H%M%S")
     runs_dir.mkdir(parents=True, exist_ok=True)
     (out / "reports").mkdir(parents=True, exist_ok=True)
+    (out / "blueprints").mkdir(parents=True, exist_ok=True)
 
     # BDE Patrol scan
+    patrol_summary = {"error": "not_available"}
     try:
+        import sys
+        sys.path.insert(0, str(Path(".").resolve()))
         from src.bde_patrol import BDEPatrol
         patrol = BDEPatrol(Path("."), Path("data"))
         patrol_summary = patrol.run_patrol(
@@ -417,7 +421,7 @@ def run_dual_simulation(runs: int = 10, population: int = 40, output: str = "blu
                 "best_score": best_overall.score,
             }
             # Save best per mode
-            (out / "blueprints" / f"best_{mode}.json").write_text(json.dumps(best_overall.to_dict(), indent=2))
+            (out / f"best_{mode}.json").write_text(json.dumps(best_overall.to_dict(), indent=2))
 
     # Comparative report
     report = {

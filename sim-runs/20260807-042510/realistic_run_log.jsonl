@@ -1,0 +1,3 @@
+{"mode": "realistic", "run": 1, "best_name": "gen0-3867", "best_score": 51.66885798113707, "best_speed_c": 0.11251643479261252, "best_delta_v_c": 0.0, "best_atmo": true}
+{"mode": "realistic", "run": 2, "best_name": "gen0-3867", "best_score": 51.66885798113707, "best_speed_c": 0.11251643479261252, "best_delta_v_c": 0.0, "best_atmo": true}
+{"mode": "realistic", "run": 3, "best_name": "gen1-2264", "best_score": 52.168748414854825, "best_speed_c": 0.10689061305298188, "best_delta_v_c": 0.0, "best_atmo": true}

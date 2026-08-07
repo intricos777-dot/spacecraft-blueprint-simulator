@@ -1,0 +1,3 @@
+{"mode": "theoretical", "run": 1, "best_name": "gen0-3011", "best_score": 55.95421767414459, "best_speed_c": 0.27385544180910687, "best_delta_v_c": 0.0, "best_atmo": true}
+{"mode": "theoretical", "run": 2, "best_name": "gen0-3011", "best_score": 55.95421767414459, "best_speed_c": 0.27385544180910687, "best_delta_v_c": 0.0, "best_atmo": true}
+{"mode": "theoretical", "run": 3, "best_name": "gen1-1672", "best_score": 58.03572524641221, "best_speed_c": 0.3288062029931308, "best_delta_v_c": 0.0, "best_atmo": true}
