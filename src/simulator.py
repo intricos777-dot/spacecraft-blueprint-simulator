@@ -347,7 +347,7 @@ def crossover(a: SpacecraftDesign, b: SpacecraftDesign) -> SpacecraftDesign:
     return child
 
 
-def run_dual_simulation(runs: int = 10, population: int = 40, output: str = "blueprints") -> Dict[str, Any]:
+def run_dual_simulation(runs: int = 10, population: int = 40, output: str = "blueprints", push: bool = False) -> Dict[str, Any]:
     """Run two separate simulations: realistic and theoretical."""
     out = Path(output)
     runs_dir = Path("sim-runs") / datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -358,13 +358,13 @@ def run_dual_simulation(runs: int = 10, population: int = 40, output: str = "blu
     # BDE Patrol scan
     patrol_summary = {"error": "not_available"}
     try:
-        import sys
-        sys.path.insert(0, str(Path(".").resolve()))
+        import sys as _sys
+        _sys.path.insert(0, str(Path(".").resolve()))
         from src.bde_patrol import BDEPatrol
         patrol = BDEPatrol(Path("."), Path("data"))
         patrol_summary = patrol.run_patrol(
             queries=["spacecraft CAD open source", "rocket engine design 3D model", "space shuttle CAD"],
-            urls=["https://www.nasa.gov/sites/default/files/atoms/files/space_vehicle_design_v2.0.pdf"]
+            urls=["https://www.nasa.gov/sites/default/files/atoms/files/space_vehicle_design_v2.0.pdf"],
         )
     except Exception as e:
         patrol_summary = {"error": str(e)}
@@ -375,8 +375,13 @@ def run_dual_simulation(runs: int = 10, population: int = 40, output: str = "blu
     for mode in ["realistic", "theoretical"]:
         print(f"[sim] === {mode.upper()} MODE ===")
         pop = [random_design(mode=mode, generation=0) for _ in range(population)]
-        
+
         best_overall = None
+        stagnant_generations = 0
+        last_best_score = -1.0
+        convergence_window = max(4, runs // 2)
+        convergence_delta = 0.25
+
         for run_idx in range(runs):
             scored = []
             for d in pop:
@@ -388,6 +393,10 @@ def run_dual_simulation(runs: int = 10, population: int = 40, output: str = "blu
             best = scored[0][1]
             if best_overall is None or best.score > best_overall.score:
                 best_overall = best
+                last_best_score = best.score
+                stagnant_generations = 0
+            else:
+                stagnant_generations += 1
 
             run_log = {
                 "mode": mode,
@@ -399,6 +408,10 @@ def run_dual_simulation(runs: int = 10, population: int = 40, output: str = "blu
                 "best_atmo": best.atmo_capable,
             }
             (runs_dir / f"{mode}_run_log.jsonl").open("a").write(json.dumps(run_log) + "\n")
+
+            if stagnant_generations >= convergence_window:
+                print(f"[sim] {mode}: converged after {run_idx + 1} runs with no score improvement >= {convergence_delta}")
+                break
 
             # Next generation
             new_pop = [scored[i][1] for i in range(min(8, len(scored)))]
@@ -420,7 +433,6 @@ def run_dual_simulation(runs: int = 10, population: int = 40, output: str = "blu
                 "physics": asdict(physics),
                 "best_score": best_overall.score,
             }
-            # Save best per mode
             (out / f"best_{mode}.json").write_text(json.dumps(best_overall.to_dict(), indent=2))
 
     # Comparative report
@@ -434,11 +446,64 @@ def run_dual_simulation(runs: int = 10, population: int = 40, output: str = "blu
         "run_directory": str(runs_dir),
         "note": "Dual-track simulation: realistic = current physics only; theoretical = advanced propulsion + materials.",
     }
-    (out / "reports" / f"report-{runs_dir.name}.json").write_text(json.dumps(report, indent=2))
-    
+    report_path = out / "reports" / f"report-{runs_dir.name}.json"
+    report_path.write_text(json.dumps(report, indent=2))
+    _write_markdown_report(out, report, results)
+
     print(f"[sim] Realistic best score: {results.get('realistic', {}).get('best_score', 0):.2f}")
     print(f"[sim] Theoretical best score: {results.get('theoretical', {}).get('best_score', 0):.2f}")
+
+    if push:
+        _push_blueprints(out)
+
     return report
+
+
+def _write_markdown_report(out: Path, report: Dict[str, Any], results: Dict[str, Any]) -> None:
+    md = out / "reports" / f"report-{Path(report['run_directory']).name}.md"
+    lines = [
+        "# Spacecraft Blueprint Report",
+        "",
+        f"- Timestamp: {report['timestamp']}",
+        f"- Runs per mode: {report['runs_per_mode']}",
+        f"- Population: {report['population']}",
+        "",
+        "## Realistic",
+    ]
+    r = results.get("realistic")
+    if r:
+        d = r["best_design"]
+        lines += [
+            f"- Best: {d.get('name')}",
+            f"- Score: {r['best_score']:.2f}",
+            f"- Speed: {d.get('max_speed_c', 0):.4f}c",
+            f"- Delta-v: {r['physics'].get('delta_v_m_s', 0):.1f} m/s",
+            f"- Atmo capable: {d.get('atmo_capable')}",
+            f"- Propulsion: {d.get('propulsion')}",
+        ]
+    lines += ["", "## Theoretical"]
+    t = results.get("theoretical")
+    if t:
+        d = t["best_design"]
+        lines += [
+            f"- Best: {d.get('name')}",
+            f"- Score: {t['best_score']:.2f}",
+            f"- Speed: {d.get('max_speed_c', 0):.4f}c",
+            f"- Delta-v: {t['physics'].get('delta_v_m_s', 0):.1f} m/s",
+            f"- Atmo capable: {d.get('atmo_capable')}",
+            f"- Propulsion: {d.get('propulsion')}",
+        ]
+    lines += ["", "## BDE Patrol", f"- Summary: {json.dumps(report.get('bde_patrol', {}))}", ""]
+    md.write_text("\n".join(lines))
+
+
+def _push_blueprints(out: Path) -> None:
+    try:
+        subprocess.run(["git", "add", str(out), "reports", "sim-runs"], check=False)
+        subprocess.run(["git", "commit", "-m", "chore: update spacecraft blueprints/reports"], check=False)
+        subprocess.run(["git", "push", "origin", "master"], check=False)
+    except Exception as e:
+        print(f"[sim] push failed: {e}")
 
 
 def summarize_references(path: Path) -> None:
@@ -498,8 +563,9 @@ def main() -> int:
     ap.add_argument("--runs", type=int, default=20)
     ap.add_argument("--population", type=int, default=50)
     ap.add_argument("--output", type=str, default="blueprints")
+    ap.add_argument("--push", action="store_true", help="Auto-push best blueprints/reports to origin/master")
     args = ap.parse_args()
-    report = run_dual_simulation(runs=args.runs, population=args.population, output=args.output)
+    report = run_dual_simulation(runs=args.runs, population=args.population, output=args.output, push=args.push)
     return 0
 
 

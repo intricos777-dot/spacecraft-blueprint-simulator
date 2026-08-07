@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+sim-runs/
+data/bde_patrol_*.json
+reports/
+blueprints/blueprints/
+blueprints/best_*.json
