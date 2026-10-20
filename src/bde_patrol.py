@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Watermark: Living_Sin (intricos777-dot) + AI agents (Hermes, Lia, opencode) - collaborative work
 """
 BDE Patrol Scanner
 Autonomously scans for open-source and real-world spacecraft models/designs

@@ -1,3 +1,4 @@
+<!-- Watermark: Living_Sin (intricos777-dot) + AI agents (Hermes, Lia, opencode) - collaborative work -->
 # Spacecraft Blueprint Simulator
 
 Autonomous, self-looping design space explorer for a **direct-to-space atmospheric-capable spacecraft** targeting **0.5c** with a next-generation **plasma propulsion engine**.
